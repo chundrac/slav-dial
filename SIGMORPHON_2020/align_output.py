@@ -11,15 +11,15 @@ import tensorflow.keras.backend as K
 import larq as lq
 import editdistance
 
-#assert(len(sys.argv)==3), "usage: python3 run_model batch_to_hold_out embedding_type"
+assert(len(sys.argv)==3), "usage: python3 run_model batch_to_hold_out embedding_type"
 
-#batch = sys.argv[1]
-#if batch != 'all':
-#    batch = int(batch)
+batch = sys.argv[1]
+if batch != 'all':
+    batch = int(batch)
 
-#mode = sys.argv[2]
+mode = sys.argv[2]
 
-mode = 'ST'
+#mode = 'ST'
 batch = 'all'
 
 lang_raw,input_raw,output_raw,langs,input_segs,output_segs,X,Y,T_x,T_y,L,N,lang_id,enc_in,dec_in,dec_out = generate_data(batch)
@@ -124,7 +124,7 @@ def get_aligned_pairs(lang_id,input_seq,output_seq):
 
 text = []
 for i in range(10):
-  for l in open('decoded_ST_{}.tsv'.format(i),'r'):
+  for l in open('decoded_{}_{}.tsv'.format(i),'r'):
     text.append(l.strip().split('\t'))
 
 
