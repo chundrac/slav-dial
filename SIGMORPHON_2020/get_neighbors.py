@@ -124,7 +124,7 @@ def perturb(lang,str):
       vec = vector
       vec[0,i] = abs(vec[0,i]-1)
       neighbors.append(''.join(decode_sequence2(str,vec)))
-    return(pred_reflex,sorted(set(neighbors)))
+    return(pred_reflex,neighbors)
 
 
 inds = [i for i in list(range(N)) if lang_raw['train'][i] == lang]
