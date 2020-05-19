@@ -124,7 +124,7 @@ def get_aligned_pairs(lang_id,input_seq,output_seq):
 
 text = []
 for i in range(10):
-  for l in open('decoded_{}_{}.tsv'.format(i),'r'):
+  for l in open('decoded_results/decoded_{}_{}.tsv'.format(mode,i),'r'):
     text.append(l.strip().split('\t'))
 
 
