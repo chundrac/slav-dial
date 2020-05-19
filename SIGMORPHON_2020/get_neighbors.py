@@ -50,7 +50,35 @@ embed_inputs_ = Concatenate()([enc_input_,rep_latent_inputs_])
 embedding = Dense(embed_dim)(embed_inputs_)
 h_enc = Bidirectional(LSTM(hidden_dim, return_sequences=True, activation=None),'concat')(embedding)*enc_mask
 h_dec = LSTM(hidden_dim, return_sequences=True, activation=None)(dec_input_)*dec_mask
-dec_output_ = monotonic_alignment([h_enc,h_dec,T_x,T_y,Y,hidden_dim])
+#alignment_probs_,emission_probs = monotonic_alignment([h_enc,h_dec,T_x,T_y,Y,hidden_dim])
+struc_zeros = K.expand_dims(K.cast(np.triu(np.ones([T_x,T_x])),dtype='float32'),0)
+alignment_probs = K.softmax(dot([Dense(hidden_dim)(h_enc),h_dec],axes=-1,normalize=False),-2)
+h_enc_rep = K.tile(K.expand_dims(h_enc,-2),[1,1,T_y,1])
+h_dec_rep = K.tile(K.expand_dims(h_dec,-3),[1,T_x,1,1])
+h_rep = K.concatenate([h_enc_rep,h_dec_rep],-1)
+alignment_probs_ = []
+for i in range(T_y):
+    if i == 0:
+        align_prev_curr = tf.gather(alignment_probs,i,axis=-1)
+    if i > 0:
+        align_prev_curr = tf.einsum('nx,ny->nxy',tf.gather(alignment_probs,i,axis=-1),alignment_probs_[i-1])
+        align_prev_curr *= struc_zeros
+        align_prev_curr = K.sum(align_prev_curr,1)+1e-6
+        align_prev_curr /= K.sum(align_prev_curr,-1,keepdims=True)
+    alignment_probs_.append(align_prev_curr)
+
+
+alignment_probs_ = K.stack(alignment_probs_,-1)
+emission_probs = Dense(hidden_dim*3,activation='tanh')(h_rep)
+emission_probs = Dense(Y, activation='softmax')(emission_probs)
+
+alignment_probs_ = Lambda(lambda x:x)(alignment_probs_)
+alignment_model = Model([latent_inputs_,enc_input_,dec_input_],alignment_probs_)
+alignment_output = alignment_model([prior(lang_id_),enc_input_,dec_input_])
+alignment = Model([lang_id_,enc_input_,dec_input_],alignment_output)
+
+alphas = tf.expand_dims(alignment_probs_,-1)*emission_probs
+dec_output_ = tf.reduce_sum(alphas,-3)
 dec_output_ = Lambda(lambda x:x)(dec_output_)
 
 decoder = Model([latent_inputs_,enc_input_,dec_input_],dec_output_)
@@ -75,7 +103,7 @@ def decode_sequence2(input_seq,vector,attn=False):
     #print(vector.shape,input_seq.shape)
 #    attention_mat
     for t in range(T_y-1):
-        output_tokens = decoder.predict([vector,input_seq,target_seq])
+        output_tokens = decoder.predict([vector,input_seq,target_seq]) 
         curr_index = np.argmax(output_tokens[:,t,:])
         target_seq[0, t+1, curr_index] = 1.
         symbol = output_segs[curr_index]
@@ -100,7 +128,7 @@ def perturb(lang,str):
 
 
 inds = [i for i in list(range(N)) if lang_raw['train'][i] == lang]
-inds = random.sample(inds,100)
+#inds = random.sample(inds,100)
 
 
 for i in inds:
