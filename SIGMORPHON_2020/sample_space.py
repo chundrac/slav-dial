@@ -118,9 +118,11 @@ inds = np.arange(len(input_raw['train']))
 np.random.shuffle(inds)
 inds = inds[:100]
 
+
+f = open('latent_space_sample_{}_{}'.format(mode,scale),'w')
 for i in inds:
     inp = ''.join(input_raw['train'][i])
-    print(inp,end=' ')
+    print(inp,end=' ',file=f)
     for j in range(10):
         if mode == 'dense':
             z = np.array([np.random.normal(0,scale,128)])
@@ -128,17 +130,5 @@ for i in inds:
             z = np.array([np.random.beta(scale,scale,128)])
         if mode == 'ST':
             z = np.array([np.random.binomial(1,scale,128)])
-        print(''.join(decode_sequence2(inp,z)),end=' ')
-    print('')
-
-
-#inds = [i for i in range(len(input_raw['train']))]
-#for p in [.2,.4,.6,.8]:
-#    for i in inds:
-#        inp = ''.join(input_raw['train'][i])
-#        for j in range(100):
-#            #z = np.array([np.random.beta(1,5,128)])
-#            #z = np.array([np.random.normal(0,np.var(prior.predict(np.eye(L)),0))])
-#            z = np.array([np.random.normal(0,.1,128)])
-#            #z = np.array([np.random.binomial(1,p,128)])
-#            print(inp,''.join(decode_sequence2(inp,z)))
+        print(''.join(decode_sequence2(inp,z)),end=' ',file=f)
+    print('',file=f)
