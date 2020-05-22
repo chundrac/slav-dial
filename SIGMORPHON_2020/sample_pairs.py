@@ -152,9 +152,10 @@ for p in [.2,.4,.6,.8]:
         print(i)
         z = np.array([np.random.binomial(1,p,128)])
         for f_ in etym_sets:
+            output_set = []
             for f in f_:
                 output_set.append(''.join(decode_sequence2(f,z)))
-                print('\t'.join(output_set),file=f)
+            print('\t'.join(output_set),file=f)
                 
                 
 f.close()
