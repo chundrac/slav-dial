@@ -121,6 +121,9 @@ def endmatch(x,y):
     return(i/np.mean([len(x),len(y)]))
 
 
+
+
+
 forms = ['drebъ',
 'doba',
 #bъrna
@@ -159,3 +162,25 @@ for p in [.2,.4,.6,.8]:
                 
                 
 f.close()
+
+
+text = [l.strip().split('\t') for l in open('generated_pairs.tsv','r')]
+k = 0
+agree = []
+for l in text:
+  for i in range(len(l)):
+    for j in range(i+1,len(l)):
+      if not etym_sets[k][i].startswith('ge') and not etym_sets[k][i].startswith('gь') and not etym_sets[k][i].startswith('ke') and not etym_sets[k][i].startswith('kь') and not etym_sets[k][j].startswith('ge') and not etym_sets[k][j].startswith('gь') and not etym_sets[k][j].startswith('ke') and not etym_sets[k][j].startswith('kь'):
+        x = l[i].replace('[','').replace(']','').replace('ˈ','')
+        y = l[j].replace('[','').replace(']','').replace('ˈ','')
+        agree.append(endmatch(x,y))
+  if k < 11:
+      k += 1
+  else:
+      k = 0
+
+
+print(len([l for l in agree[:13500] if l > .5])/13500)
+print(len([l for l in agree[13500:(13500*2)] if l > .5])/13500)
+print(len([l for l in agree[(13500*2):(13500*3)] if l > .5])/13500)
+print(len([l for l in agree[(13500*3):(13500*4)] if l > .5])/13500)
